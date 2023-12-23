@@ -37,6 +37,7 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
     val countryCode = Constants.CountryCode
     private lateinit var searchView: SearchView
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mainViewModel = (activity as MainActivity).mainViewModel
