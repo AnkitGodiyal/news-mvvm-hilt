@@ -8,6 +8,8 @@ import com.ankit.news.base.BaseActivity
 import com.ankit.news.databinding.ActivityMainBinding
 import com.ankit.news.ui.favorite.FavoriteFragment
 import com.ankit.news.ui.feed.FeedFragment
+import com.ankit.news.utils.FragmentExtensions
+import com.ankit.news.utils.FragmentExtensions.openFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -47,8 +49,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
 
     private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(binding.flFragment.id, fragment)
-            .commit()
+        supportFragmentManager.openFragment(
+            binding.flFragment.id,
+            fragment,
+            FragmentExtensions.FragmentStackMethod.REPLACE
+        )
     }
 }
