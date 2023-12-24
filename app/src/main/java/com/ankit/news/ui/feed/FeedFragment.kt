@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -19,7 +20,6 @@ import com.ankit.news.databinding.FragmentFeedBinding
 import com.ankit.news.state.NetworkState
 import com.ankit.news.ui.adapter.NewsAdapter
 import com.ankit.news.ui.details.DetailsFragment
-import com.ankit.news.ui.main.MainActivity
 import com.ankit.news.ui.main.MainViewModel
 import com.ankit.news.utils.Constants
 import com.ankit.news.utils.Constants.QUERY_PER_PAGE
@@ -32,7 +32,9 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
         FragmentFeedBinding.inflate(layoutInflater)
 
     private lateinit var onScrollListener: EndlessRecyclerOnScrollListener
-    lateinit var mainViewModel: MainViewModel
+    val mainViewModel: MainViewModel? by lazy {
+        activity?.let { ViewModelProvider(it) }?.get(MainViewModel::class.java)
+    }
     private lateinit var newsAdapter: NewsAdapter
     val countryCode = Constants.CountryCode
     private lateinit var searchView: SearchView
@@ -40,7 +42,6 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mainViewModel = (activity as MainActivity).mainViewModel
         setupUI()
         setupRecyclerView()
         setupObservers()
@@ -49,10 +50,10 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
 
     private fun setupUI() {
         binding.itemErrorMessage.btnRetry.setOnClickListener {
-            if (mainViewModel.searchEnable) {
-                mainViewModel.searchNews(mainViewModel.newQuery)
+            if (mainViewModel?.searchEnable == true) {
+                mainViewModel?.searchNews(mainViewModel?.newQuery ?: "")
             } else {
-                mainViewModel.fetchNews(countryCode)
+                mainViewModel?.fetchNews(countryCode)
             }
             hideErrorMessage()
         }
@@ -60,10 +61,10 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
         // scroll listener for recycler view
         onScrollListener = object : EndlessRecyclerOnScrollListener(QUERY_PER_PAGE) {
             override fun onLoadMore() {
-                if (mainViewModel.searchEnable) {
-                    mainViewModel.searchNews(mainViewModel.newQuery)
+                if (mainViewModel?.searchEnable == true) {
+                    mainViewModel?.searchNews(mainViewModel?.newQuery ?: "")
                 } else {
-                    mainViewModel.fetchNews(countryCode)
+                    mainViewModel?.fetchNews(countryCode)
                 }
             }
         }
@@ -71,8 +72,8 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
         //Swipe refresh listener
         val refreshListener = SwipeRefreshLayout.OnRefreshListener {
             binding.swipeRefreshLayout.isRefreshing = false
-            mainViewModel.clearSearch()
-            mainViewModel.fetchNews(countryCode)
+            mainViewModel?.clearSearch()
+            mainViewModel?.fetchNews(countryCode)
         }
         binding.swipeRefreshLayout.setOnRefreshListener(refreshListener)
     }
@@ -96,18 +97,19 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
 
     private fun setupObservers() {
         lifecycleScope.launchWhenStarted {
-            if (!mainViewModel.searchEnable) {
-                mainViewModel.newsResponse.collect { response ->
+            if (mainViewModel?.searchEnable != true) {
+                mainViewModel?.newsResponse?.collect { response ->
                     when (response) {
                         is NetworkState.Success -> {
                             hideProgressBar()
                             hideErrorMessage()
                             response.data?.let { newResponse ->
                                 newsAdapter.differ.submitList(newResponse.articles.toList())
-                                mainViewModel.totalPage =
+                                mainViewModel?.totalPage =
                                     newResponse.totalResults / QUERY_PER_PAGE + 1
                                 onScrollListener.isLastPage =
-                                    mainViewModel.feedNewsPage == mainViewModel.totalPage + 1
+                                    mainViewModel?.feedNewsPage == (mainViewModel?.totalPage
+                                        ?: 0) + 1
                                 hideBottomPadding()
                             }
                         }
@@ -132,11 +134,11 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
         }
 
         lifecycleScope.launchWhenStarted {
-            mainViewModel.errorMessage.collect { value ->
+            mainViewModel?.errorMessage?.collect { value ->
                 if (value.isNotEmpty()) {
                     Toast.makeText(activity, value, Toast.LENGTH_LONG).show()
                 }
-                mainViewModel.hideErrorToast()
+                mainViewModel?.hideErrorToast()
             }
         }
     }
@@ -144,18 +146,19 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
     private fun collectSearchResponse() {
         //Search response
         lifecycleScope.launchWhenStarted {
-            if (mainViewModel.searchEnable) {
-                mainViewModel.searchNewsResponse.collect { response ->
+            if (mainViewModel?.searchEnable == true) {
+                mainViewModel?.searchNewsResponse?.collect { response ->
                     when (response) {
                         is NetworkState.Success -> {
                             hideProgressBar()
                             hideErrorMessage()
                             response.data?.let { searchResponse ->
                                 newsAdapter.differ.submitList(searchResponse.articles.toList())
-                                mainViewModel.totalPage =
+                                mainViewModel?.totalPage =
                                     searchResponse.totalResults / QUERY_PER_PAGE + 1
                                 onScrollListener.isLastPage =
-                                    mainViewModel.searchNewsPage == mainViewModel.totalPage + 1
+                                    mainViewModel?.searchNewsPage == (mainViewModel?.totalPage
+                                        ?: 0) + 1
                                 hideBottomPadding()
                             }
                         }
@@ -209,8 +212,8 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
         }
         //Close button clicked
         searchView.setOnCloseListener {
-            mainViewModel.clearSearch()
-            mainViewModel.fetchNews(countryCode)
+            mainViewModel?.clearSearch()
+            mainViewModel?.fetchNews(countryCode)
             //Collapse the action view
             searchView.onActionViewCollapsed()
             searchView.maxWidth = 0
@@ -226,8 +229,8 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    mainViewModel.searchNews(query)
-                    mainViewModel.enableSearch()
+                    mainViewModel?.searchNews(query)
+                    mainViewModel?.enableSearch()
                     collectSearchResponse()
                 }
                 return false
@@ -250,10 +253,10 @@ class FeedFragment : BaseFragment<FragmentFeedBinding>() {
             searchView.setSearchableInfo(searchManager.getSearchableInfo(it.componentName))
         }
         //check if search is activated
-        if (mainViewModel.searchEnable) {
+        if (mainViewModel?.searchEnable == true) {
             searchView.isIconified = false
             searchItem.expandActionView()
-            searchView.setQuery(mainViewModel.newQuery, false)
+            searchView.setQuery(mainViewModel?.newQuery ?: "", false)
         }
         return super.onCreateOptionsMenu(menu, inflater)
     }
