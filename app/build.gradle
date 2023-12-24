@@ -1,0 +1,100 @@
+plugins {
+    id("kotlin-kapt")
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+}
+
+def config = rootProject.ext
+
+android {
+    namespace = "com.ankit.news"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.ankit.news"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+            )
+        }
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+
+}
+
+dependencies {
+    // Hilt
+    implementation("com.google.dagger:hilt-android:${config.hiltVersion}")
+    kapt("com.google.dagger:hilt-compiler:${config.hiltVersion}")
+
+    // Http
+    implementation("com.squareup.okhttp3:okhttp:${config.okhttpVersion}")
+    implementation("com.squareup.okhttp3:logging-interceptor:${config.okhttpVersion}")
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:${config.retrofitVersion}")
+    implementation("com.squareup.retrofit2:converter-gson:${config.retrofitVersion}")
+
+    // Room
+    implementation("androidx.room:room-runtime:${config.roomVersion}")
+    kapt("androidx.room:room-compiler:${config.roomVersion}")
+    implementation("androidx.room:room-ktx:${config.roomVersion}")
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:${config.glideVersion}")
+    annotationProcessor("com.github.bumptech.glide:compiler:${config.glideVersion}")
+    implementation("com.github.bumptech.glide:okhttp3-integration:${config.glideVersion}")
+
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-extensions:${config.lifecycleExtensions}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${config.lifecycleVersion}")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:${config.lifecycleVersion}")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${config.lifecycleVersion}")
+
+    // Swipe Refresh
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:${config.swiperefreshlayoutVersion}")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${config.coroutinesVersion}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${config.coroutinesVersion}")
+
+    // Kotlin
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:${config.kotlinVersion}")
+    implementation("androidx.fragment:fragment-ktx:${config.fragmentKtxVersion}")
+
+    // Other dependencies
+    implementation("androidx.core:core-ktx:${config.coreKtxVersion}")
+    implementation("androidx.appcompat:appcompat:${config.appcompatVersion}")
+    implementation("com.google.android.material:material:${config.materialVersion}")
+    implementation("androidx.constraintlayout:constraintlayout:${config.constraintLayoutVersion}")
+
+    // Testing dependencies
+    testImplementation("junit:junit:${config.junitVersion}")
+    androidTestImplementation("androidx.test.ext:junit:${config.junitExtVersion}")
+    androidTestImplementation("androidx.test.espresso:espresso-core:${config.espressoVersion}")
+}
